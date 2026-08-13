@@ -59,6 +59,7 @@ class MainActivity : AppCompatActivity() {
             runCatching { adapter.resetDiscoveryTechnology(this) }
         }
         runCatching { adapter.disableForegroundDispatch(this) }
+        setSystemReaderOption(adapter, enabled = true)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -77,6 +78,7 @@ class MainActivity : AppCompatActivity() {
                     .onFailure { Log.w(TAG, "resetDiscoveryTechnology failed", it) }
             }
             runCatching { adapter.disableForegroundDispatch(this) }
+            setSystemReaderOption(adapter, enabled = true)
             Log.d(TAG, "Reading mode ON (normal NFC behavior)")
         } else {
             // タグ専用モード: ポーリング停止 + リッスンをISO-DEP(A/B)のみに限定(API 35+)。
@@ -84,9 +86,7 @@ class MainActivity : AppCompatActivity() {
             // プロトコル切替でISO-DEPの読み取りが中断され「空のタグ」になる。
             //
             // enableForegroundDispatch は setDiscoveryTechnology と競合し、
-            // 後から呼ぶとポーリング制限が意図せず緩む(自端末がTECH_DISCOVERED系の
-            // 汎用インテントを持つ他アプリに相手をタグとして渡してしまい、
-            // 「スキャンするアプリの選択」が出る)。setDiscoveryTechnologyが
+            // 後から呼ぶとポーリング制限が意図せず緩む。setDiscoveryTechnologyが
             // 使える場合はforegroundDispatchを併用しない。
             val pollingDisabled = Build.VERSION.SDK_INT >= 35 && runCatching {
                 adapter.setDiscoveryTechnology(
@@ -101,8 +101,25 @@ class MainActivity : AppCompatActivity() {
                 // フォールバック(API 35未満、または上記が失敗した端末): 読んでしまったタグを吸収する
                 enableTagDispatchSuppression(adapter)
             }
+
+            // Android 15+のシステム全体の「タグ読み取り」(Reader Option)がONだと、
+            // アプリ単位のポーリング停止とは無関係にOSが常時タグをポーリングし続け、
+            // 他の汎用タグアプリへ配送されて選択ダイアログが出たり、相手端末との
+            // 通信がRFレベルで衝突して読み取りが中断したりする。可能ならOFFにする。
+            setSystemReaderOption(adapter, enabled = false)
         }
         updateNfcStatus()
+    }
+
+    /** システムの「タグ読み取り」設定を切り替える。WRITE_SECURE_SETTINGSが必要 */
+    private fun setSystemReaderOption(adapter: NfcAdapter, enabled: Boolean) {
+        if (Build.VERSION.SDK_INT < 35 || !adapter.isReaderOptionSupported) return
+        runCatching {
+            NfcAdapter::class.java
+                .getMethod("enableReaderOption", Boolean::class.javaPrimitiveType)
+                .invoke(adapter, enabled)
+            Log.d(TAG, "System reader option set to $enabled")
+        }.onFailure { Log.w(TAG, "enableReaderOption($enabled) failed", it) }
     }
 
     private fun enableTagDispatchSuppression(adapter: NfcAdapter) {

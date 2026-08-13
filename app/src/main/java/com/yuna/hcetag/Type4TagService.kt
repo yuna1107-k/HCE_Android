@@ -84,6 +84,7 @@ class Type4TagService : HostApduService() {
         if (offset >= file.size) return SW_INCORRECT_P1P2
         val le = if (apdu.size >= 5) (apdu[4].toInt() and 0xFF).let { if (it == 0) 256 else it } else 256
         val end = min(offset + le, file.size)
+        Log.d(TAG, "READ BINARY file=%04X offset=%d le=%d -> %d bytes".format(selectedFile, offset, le, end - offset))
         return file.copyOfRange(offset, end) + SW_OK
     }
 
