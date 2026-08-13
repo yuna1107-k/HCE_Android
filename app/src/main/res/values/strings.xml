@@ -9,7 +9,9 @@
     <string name="button_save">保存</string>
     <string name="toast_saved">保存しました。次のタッチから反映されます</string>
     <string name="error_url_scheme">https:// で始まるURLを指定してください</string>
+    <string name="switch_tag_reading">この端末で他のNFCタグを読み取る(スマホ同士で使うときはOFF)</string>
     <string name="nfc_status_unsupported">この端末はNFC(HCE)に対応していません</string>
     <string name="nfc_status_disabled">NFCが無効です。タップして設定を開いてください</string>
-    <string name="nfc_status_ready">NFC待機中: 相手のスマホをこの端末の背面にかざしてください(画面ONが必要)</string>
+    <string name="nfc_status_ready">タグとして待機中: 相手のスマホをこの端末の背面に2〜3秒かざしてもらってください</string>
+    <string name="nfc_status_reading_mode">読み取りモード中: この端末でNFCタグを読めます。相手のスマホに読ませるにはスイッチをOFFに戻してください</string>
 </resources>

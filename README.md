@@ -18,6 +18,7 @@ Android の HCE(Host Card Emulation)で **NFC Forum Type 4 Tag** を模擬し、
 
 - **HCE 側(このアプリの端末)**: 画面 ON であればロック中でも動作(`requireDeviceUnlock=false`)。Android 13 以降は画面 OFF でも動作しうる(`requireDeviceScreenOn=false`、ハードウェア依存)。端末設定の「NFC のロック解除必須(セキュア NFC)」が ON の場合は OS 側が優先される
 - **リーダー側 Android**: タグディスパッチの仕様上、ロック解除状態が必要
+- **HCE 側でのタグ読み取り抑止**: Android 同士をかざすと HCE 側もリーダーとして相手を読んでしまい、タグ読み取りアプリの選択ダイアログが出ることがある。本アプリの画面が前面にある間は「タグ専用モード」となり、`setDiscoveryTechnology`(API 35+)でポーリング(読み取り)を停止して HCE(リッスン)のみ残すため、ダイアログは出ない。タグを読みたいときはアプリ内の「読み取りモード」スイッチを ON にする。API 35 未満では前面ディスパッチでタグイベントを吸収するフォールバックで動作。ホーム画面等(アプリが前面にない状態)でタッチされる場合は抑止できないため、読み取り系アプリ(NFC Tools 等)の無効化や Android 14 以降の「NFC 設定 → タグアプリの設定」で対応する(ロック中はそもそもタグディスパッチが動かないため出ない)
 - **iOS 読み取り側**: バックグラウンド読み取りは画面点灯時に動作(ロック中でも可、Apple Pay 使用中・カメラ起動中などは無効)
 - **非対応端末(重要)**: NFC チップ内蔵の T4T NFCEE が有効な端末(例: Xperia 5 III / NXP チップ + `NXP_T4T_NFCEE_ENABLE=0x01`)では、NDEF 用 AID への通信をチップが横取りするため**本アプリは動作しない**(空のタグとして読まれる)。詳細は [Issue #5](https://github.com/yuna1107-k/HCE_Android/issues/5)。判定方法: `adb shell dumpsys nfc` で `AID_D2760000850101` の NFCEE_ID が `0x00` 以外なら非対応
 
