@@ -79,15 +79,17 @@ class MainActivity : AppCompatActivity() {
             runCatching { adapter.disableForegroundDispatch(this) }
             Log.d(TAG, "Reading mode ON (normal NFC behavior)")
         } else {
-            // タグ専用モード: ポーリング停止・リッスン維持(API 35+)
+            // タグ専用モード: ポーリング停止 + リッスンをISO-DEP(A/B)のみに限定(API 35+)。
+            // FeliCa(eSE)のリッスンを隠さないと、リーダー側から複合デバイスに見えて
+            // プロトコル切替でISO-DEPの読み取りが中断され「空のタグ」になる。
             if (Build.VERSION.SDK_INT >= 35) {
                 runCatching {
                     adapter.setDiscoveryTechnology(
                         this,
                         NfcAdapter.FLAG_READER_DISABLE,
-                        NfcAdapter.FLAG_LISTEN_KEEP
+                        NfcAdapter.FLAG_LISTEN_NFC_PASSIVE_A or NfcAdapter.FLAG_LISTEN_NFC_PASSIVE_B
                     )
-                    Log.d(TAG, "Polling disabled (listen kept)")
+                    Log.d(TAG, "Polling disabled, listen limited to NFC-A/B")
                 }.onFailure { Log.w(TAG, "setDiscoveryTechnology failed", it) }
             }
             // フォールバック(API 35未満や上記が効かない端末): 読んでしまったタグを吸収する
