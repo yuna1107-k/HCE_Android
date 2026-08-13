@@ -1,5 +1,6 @@
 package com.yuna.hcetag
 
+import android.app.PendingIntent
 import android.content.Intent
 import android.nfc.NfcAdapter
 import android.os.Bundle
@@ -18,6 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settings: TagSettings
     private lateinit var urlInput: EditText
     private lateinit var nfcStatus: TextView
+    private val nfcAdapter: NfcAdapter? by lazy { NfcAdapter.getDefaultAdapter(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +36,32 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateNfcStatus()
+        enableTagDispatchSuppression()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        nfcAdapter?.takeIf { it.isEnabled }?.disableForegroundDispatch(this)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // 前面ディスパッチで受けたタグイベントは無視する(この端末はタグ側として振る舞う)
+    }
+
+    /**
+     * Android同士をかざすとこの端末もリーダーとして相手を読んでしまい、
+     * タグ読み取りアプリの選択ダイアログが出る。この画面が前面にある間は
+     * タグイベントを自Activityへ吸収して抑止する。
+     * enableReaderMode はカード模擬(HCE)自体を無効化するため使わないこと。
+     */
+    private fun enableTagDispatchSuppression() {
+        val adapter = nfcAdapter?.takeIf { it.isEnabled } ?: return
+        val intent = Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, intent, PendingIntent.FLAG_MUTABLE
+        )
+        adapter.enableForegroundDispatch(this, pendingIntent, null, null)
     }
 
     private fun save() {
