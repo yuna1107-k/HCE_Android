@@ -82,19 +82,27 @@ class MainActivity : AppCompatActivity() {
             // タグ専用モード: ポーリング停止 + リッスンをISO-DEP(A/B)のみに限定(API 35+)。
             // FeliCa(eSE)のリッスンを隠さないと、リーダー側から複合デバイスに見えて
             // プロトコル切替でISO-DEPの読み取りが中断され「空のタグ」になる。
-            if (Build.VERSION.SDK_INT >= 35) {
-                runCatching {
-                    adapter.setDiscoveryTechnology(
-                        this,
-                        NfcAdapter.FLAG_READER_DISABLE,
-                        NfcAdapter.FLAG_LISTEN_NFC_PASSIVE_A or NfcAdapter.FLAG_LISTEN_NFC_PASSIVE_B
-                    )
-                    Log.d(TAG, "Polling disabled, listen limited to NFC-A/B")
-                }.onFailure { Log.w(TAG, "setDiscoveryTechnology failed", it) }
+            //
+            // enableForegroundDispatch は setDiscoveryTechnology と競合し、
+            // 後から呼ぶとポーリング制限が意図せず緩む(自端末がTECH_DISCOVERED系の
+            // 汎用インテントを持つ他アプリに相手をタグとして渡してしまい、
+            // 「スキャンするアプリの選択」が出る)。setDiscoveryTechnologyが
+            // 使える場合はforegroundDispatchを併用しない。
+            val pollingDisabled = Build.VERSION.SDK_INT >= 35 && runCatching {
+                adapter.setDiscoveryTechnology(
+                    this,
+                    NfcAdapter.FLAG_READER_DISABLE,
+                    NfcAdapter.FLAG_LISTEN_NFC_PASSIVE_A or NfcAdapter.FLAG_LISTEN_NFC_PASSIVE_B
+                )
+                Log.d(TAG, "Polling disabled, listen limited to NFC-A/B")
+            }.onFailure { Log.w(TAG, "setDiscoveryTechnology failed", it) }.isSuccess
+
+            if (!pollingDisabled) {
+                // フォールバック(API 35未満、または上記が失敗した端末): 読んでしまったタグを吸収する
+                enableTagDispatchSuppression(adapter)
             }
-            // フォールバック(API 35未満や上記が効かない端末): 読んでしまったタグを吸収する
-            enableTagDispatchSuppression(adapter)
         }
+        updateNfcStatus()
     }
 
     private fun enableTagDispatchSuppression(adapter: NfcAdapter) {
@@ -128,6 +136,10 @@ class MainActivity : AppCompatActivity() {
                 nfcStatus.setOnClickListener {
                     startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
                 }
+            }
+            readingSwitch.isChecked -> {
+                nfcStatus.text = getString(R.string.nfc_status_reading_mode)
+                nfcStatus.setOnClickListener(null)
             }
             else -> {
                 nfcStatus.text = getString(R.string.nfc_status_ready)
