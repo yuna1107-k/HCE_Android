@@ -13,6 +13,14 @@
         android:padding="12dp"
         android:textAppearance="?attr/textAppearanceBodyMedium" />
 
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_tag_reading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:paddingVertical="8dp"
+        android:text="@string/switch_tag_reading" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
