@@ -21,20 +21,10 @@
         android:textAppearance="?attr/textAppearanceBodySmall" />
 
     <EditText
-        android:id="@+id/input_package"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="@string/hint_package"
-        android:importantForAutofill="no"
-        android:inputType="textNoSuggestions"
-        android:maxLines="1" />
-
-    <EditText
         android:id="@+id/input_url"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:hint="@string/hint_url"
         android:importantForAutofill="no"
         android:inputType="textUri"
@@ -52,19 +42,5 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/button_save" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/label_app_list"
-        android:textAppearance="?attr/textAppearanceTitleSmall" />
-
-    <ListView
-        android:id="@+id/list_apps"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="4dp"
-        android:layout_weight="1" />
 
 </LinearLayout>
