@@ -2,4 +2,16 @@
 <resources>
     <string name="app_name">HCE Tag</string>
     <string name="apduservice_description">NFC Forum Type 4 Tag エミュレーション</string>
+
+    <string name="description_how_it_works">相手のスマホをこの端末にNFCタッチすると、相手側で下記の設定に従ってアプリ/リンクが開きます。相手側へのインストールは不要です。</string>
+    <string name="hint_package">Android相手: 開かせるアプリのパッケージ名</string>
+    <string name="hint_url">iPhone相手: 開かせる https URL</string>
+    <string name="helper_url">iPhoneではUniversal Link対応アプリならそのアプリ、それ以外はSafariで開きます</string>
+    <string name="button_save">保存</string>
+    <string name="toast_saved">保存しました。次のタッチから反映されます</string>
+    <string name="error_url_scheme">https:// で始まるURLを指定してください</string>
+    <string name="label_app_list">この端末のアプリから選択(入力補助)</string>
+    <string name="nfc_status_unsupported">この端末はNFC(HCE)に対応していません</string>
+    <string name="nfc_status_disabled">NFCが無効です。タップして設定を開いてください</string>
+    <string name="nfc_status_ready">NFC待機中: 相手のスマホをこの端末の背面にかざしてください(画面ONが必要)</string>
 </resources>
