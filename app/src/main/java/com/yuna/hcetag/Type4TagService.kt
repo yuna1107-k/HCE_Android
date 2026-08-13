@@ -14,9 +14,10 @@ import kotlin.math.min
  * NDEF Tag Application(AID D2760000850101)をSELECTし、
  * CCファイル(E103)→ NDEFファイル(E104)の順に読み取る。
  *
- * NDEFメッセージには以下を格納する:
- * 1. URIレコード(https URL)… iPhone用。先頭でないとiOSが反応しない
- * 2. AAR(Android Application Record)… Android用。位置は問わずAARが最優先される
+ * NDEFメッセージはURIレコード(https URL)1件のみ。
+ * Androidはブラウザ(App Links検証済みならそのアプリ)で、
+ * iPhoneは通知経由でSafari / Universal Link対応アプリで開く。
+ * レコードを複数にするとAndroid側でアプリ選択が出うるため単一に保つこと。
  */
 class Type4TagService : HostApduService() {
 
@@ -88,17 +89,12 @@ class Type4TagService : HostApduService() {
 
     /** 設定からNDEFファイル(NLEN 2バイト + NDEFメッセージ)を組み立てる */
     private fun buildNdefFile(): ByteArray {
-        val settings = TagSettings(this)
-        val records = mutableListOf<NdefRecord>()
-        // iPhoneのバックグラウンド読み取りは先頭レコードしか見ないため、URIを先頭に置く
-        settings.targetUrl?.let { records += NdefRecord.createUri(it) }
-        settings.targetPackage?.let { records += NdefRecord.createApplicationRecord(it) }
-
-        if (records.isEmpty()) {
-            Log.w(TAG, "No target configured; serving empty NDEF")
+        val url = TagSettings(this).targetUrl
+        if (url == null) {
+            Log.w(TAG, "No target URL configured; serving empty NDEF")
             return byteArrayOf(0x00, 0x00)
         }
-        val message = NdefMessage(records.toTypedArray()).toByteArray()
+        val message = NdefMessage(arrayOf(NdefRecord.createUri(url))).toByteArray()
         if (message.size > MAX_NDEF_SIZE - 2) {
             Log.w(TAG, "NDEF message too large (${message.size} bytes); serving empty NDEF")
             return byteArrayOf(0x00, 0x00)

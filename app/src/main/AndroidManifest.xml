@@ -7,14 +7,6 @@
         android:name="android.hardware.nfc.hce"
         android:required="true" />
 
-    <!-- 設定画面でインストール済みアプリ一覧を表示するため -->
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent>
-    </queries>
-
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
